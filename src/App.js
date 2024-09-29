@@ -1,6 +1,7 @@
 import "./App.css";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import MarksChart from "./MarksChart"; // Import the chart component
 
 function App() {
   const [username, setUsername] = useState("");
@@ -46,32 +47,36 @@ function App() {
       alert("Please enter name and password");
       return;
     }
-    // Calculate total marks
+    if (Object.values(tempUser.marks).some((mark) => mark < 0 || mark > 100)) {
+      alert("Marks should be between 0 and 100");
+      return;
+    }
     const totalMarks = calculateTotalMarks(tempUser.marks);
     const updatedStudent = { ...tempUser, totalMarks };
 
-    // Update student in the backend
     const res = await axios.put(
       `https://student-server.collegestorehub.com/students/${tempUser.id}`,
       { student: updatedStudent, username: loggedInUser.name }
     );
     if (res.status === 200) {
       alert("Marks updated successfully");
-      fetchStudents(); // Refresh the students list with updated marks
+      fetchStudents();
     }
   };
 
   // Function to add a new student
   const addStudent = async () => {
-    // Calculate total marks
     if (tempUser.name === "" || tempUser.password === "") {
       alert("Please enter name and password");
+      return;
+    }
+    if (Object.values(tempUser.marks).some((mark) => mark < 0 || mark > 100)) {
+      alert("Marks should be between 0 and 100");
       return;
     }
     const totalMarks = calculateTotalMarks(tempUser.marks);
     const newStudent = { ...tempUser, totalMarks };
 
-    // Add the new student to the backend
     const res = await axios.post(
       "https://student-server.collegestorehub.com/students/add",
       {
@@ -81,7 +86,7 @@ function App() {
     );
     if (res.status === 200) {
       alert("Student added successfully");
-      fetchStudents(); // Refresh the students list with the new student
+      fetchStudents();
     }
   };
 
@@ -327,7 +332,7 @@ function App() {
               </tbody>
             </table>
           </div>
-
+          <MarksChart students={students} />
           {/* Edit Marks Modal */}
           <div
             className="modal fade"
